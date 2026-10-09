@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lifeos.local/schema/daily-review-1.0.json",
+  "title": "LifeOS Daily Review v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "type", "date", "completion_status", "efficiency", "cognitive_gains", "exploration", "autonomy", "reflection"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "type": { "const": "daily_review" },
+    "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "completion_status": { "enum": ["completed", "partial", "not_started"] },
+    "efficiency": { "type": ["integer", "null"], "minimum": 1, "maximum": 5 },
+    "cognitive_gains": { "type": "string", "maxLength": 4000 },
+    "exploration": { "type": "string", "maxLength": 4000 },
+    "autonomy": { "type": ["integer", "null"], "minimum": 1, "maximum": 5 },
+    "reflection": { "type": "string", "maxLength": 8000 }
+  }
+}

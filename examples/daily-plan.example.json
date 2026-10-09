@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "type": "daily_plan",
+  "plan_id": "demo-2026-10-09",
+  "date": "2026-10-09",
+  "title": "专注工作日",
+  "tasks": [
+    {
+      "id": "focus-01",
+      "title": "深度工作：LifeOS MVP",
+      "description": "完成一个可交付的小闭环",
+      "start_time": "13:00",
+      "end_time": "14:30",
+      "category": "创造"
+    },
+    {
+      "id": "walk-01",
+      "title": "散步与整理思路",
+      "start_time": "14:45",
+      "end_time": "15:15",
+      "category": "恢复"
+    },
+    {
+      "id": "review-01",
+      "title": "整理今日输出",
+      "start_time": "15:30",
+      "end_time": "16:30",
+      "category": "收尾"
+    }
+  ]
+}
