@@ -11,6 +11,8 @@ lifeos-backup-*.json
 lifeos-review-*.json
 backups/
 exports/
+artifacts/
+release-staging/
 .env
 .env.*
 !.env.example
