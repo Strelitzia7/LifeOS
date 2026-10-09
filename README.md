@@ -4,6 +4,8 @@ LifeOS 是一个离线优先的 Windows 桌面应用：从外部 AI 导入标准
 
 当前版本：**v0.1.0 MVP**
 
+[English README](README.en.md)
+
 [下载 Windows 便携版](https://github.com/Strelitzia7/LifeOS/releases/tag/v0.1.0) · [查看 JSON Schema](schemas/) · [提交 Issue](https://github.com/Strelitzia7/LifeOS/issues)
 
 ## 下载和运行
@@ -69,6 +71,39 @@ npm run tauri build
 
 原生构建产物位于 `src-tauri/target/release/lifeos.exe`。
 
+## 与其他 LLM 配合使用
+
+LifeOS 不直接调用任何 AI。你可以使用 ChatGPT、Claude、Gemini、通义千问或其他能够输出 JSON 的 LLM：
+
+1. 将下面的角色提示词和你的目标、可用时间、约束条件一起发送给 LLM。
+2. 要求它只输出一个符合 LifeOS JSON v1 的 `daily_plan`，不要输出 Markdown 代码围栏或解释文字。
+3. 把返回的 JSON 复制到 LifeOS 的“导入计划”，先验证和预览，再确认保存。
+4. 执行任务并填写每日复盘，然后导出 `daily_review` JSON。
+5. 将导出的复盘 JSON 交给 LLM，让它根据实际完成情况生成下一天的计划。
+
+可以直接复用的提示词：
+
+```text
+你是 LifeOS 的日程规划器。请根据我的目标、约束和上一日复盘，生成下一天的计划。
+
+只输出一个有效 JSON，不要输出 Markdown、解释或额外文字。
+必须满足：
+- schema_version 必须是 "1.0"
+- type 必须是 "daily_plan"
+- 每个任务都有全局唯一的 id、title、start_time、end_time
+- end_time 必须晚于 start_time，任务之间不能重叠
+- 输出结构必须符合 schemas/daily-plan.schema.json
+
+我的信息：
+- 日期：2026-10-09
+- 可用时间：13:00-17:00
+- 今日目标：完成一个可交付的小版本
+- 约束：保留一次短暂恢复时间
+- 上一日复盘：在这里粘贴 daily_review JSON
+```
+
+完整提示词和反馈循环说明见 [`docs/llm-workflow.md`](docs/llm-workflow.md)。
+
 ## JSON 协议
 
 协议文件和虚构示例位于：
@@ -77,6 +112,36 @@ npm run tauri build
 - [`schemas/daily-review.schema.json`](schemas/daily-review.schema.json)
 - [`examples/daily-plan.example.json`](examples/daily-plan.example.json)
 - [`examples/daily-review.example.json`](examples/daily-review.example.json)
+
+可以直接复制使用的虚构计划和复盘：
+
+```json
+{
+  "schema_version": "1.0",
+  "type": "daily_plan",
+  "plan_id": "demo-2026-10-09",
+  "date": "2026-10-09",
+  "title": "专注工作日",
+  "tasks": [
+    {
+      "id": "focus-01",
+      "title": "深度工作：LifeOS MVP",
+      "start_time": "13:00",
+      "end_time": "14:30",
+      "category": "创造"
+    },
+    {
+      "id": "review-01",
+      "title": "整理今日输出",
+      "start_time": "15:30",
+      "end_time": "16:30",
+      "category": "收尾"
+    }
+  ]
+}
+```
+
+更多完整字段见 [`examples/daily-plan.example.json`](examples/daily-plan.example.json) 和 [`examples/daily-review.example.json`](examples/daily-review.example.json)。
 
 协议版本使用 `schema_version: "1.0"`。Zod 运行时还补充验证了 JSON Schema 不方便表达的规则：任务 ID 唯一、结束时间晚于开始时间、同一计划内任务不能重叠。
 
