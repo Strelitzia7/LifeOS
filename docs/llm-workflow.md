@@ -1,6 +1,6 @@
 # LifeOS + External LLM Workflow
 
-LifeOS intentionally has no AI integration. The user controls which external LLM receives their plan context and review data.
+LifeOS intentionally has no AI integration. The user controls which external LLM receives their plan context and review data. A fresh installation opens in English; use the top-bar language switch to choose Chinese if needed.
 
 ## 1. Generate a daily plan
 
@@ -37,7 +37,7 @@ Use the Today page to check tasks off, change status, edit times, add tasks, or 
 
 ## 3. Export feedback
 
-At the end of the day, fill in the Daily Review and click **导出复盘 JSON**. The exported object uses this shape:
+At the end of the day, fill in the Daily Review and click **Export review JSON**. The exported object uses this shape:
 
 ```json
 {

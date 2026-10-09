@@ -10,7 +10,7 @@ LifeOS 是一个离线优先的 Windows 桌面应用：从外部 AI 导入标准
 
 ## 下载和运行
 
-从 [Releases](https://github.com/Strelitzia7/LifeOS/releases) 下载 `LifeOS-v0.1.0-windows-x64.zip`，解压后双击 `LifeOS.exe` 即可运行。
+从 [Releases](https://github.com/Strelitzia7/LifeOS/releases) 下载 `LifeOS-v0.1.0-windows-x64-en.zip` 或同一 release 中的标准便携包，解压后双击 `LifeOS.exe` 即可运行。
 
 这是一个便携版，不需要安装器，不需要登录，也不需要网络服务。Windows 10/11 需要 WebView2 Runtime；Windows 11 通常已经自带。
 
@@ -25,6 +25,7 @@ LifeOS 是一个离线优先的 Windows 桌面应用：从外部 AI 导入标准
 - 桌面便栏：无边框、置顶、可拖动、可调整大小和透明度，支持快速打卡。
 - 可调整大小的便栏字体，英文使用 Consolas。
 - 深色模式和 Windows 桌面友好的交互。
+- 新安装默认英文，顶部 `中文` 按钮可以切换完整中文界面；语言偏好保存在本机。
 
 重复导入同一天的计划会创建新版本，不会悄悄覆盖旧计划或执行历史。任务 ID、时间顺序、时间冲突、JSON 格式和存储错误都会被检查并显示。
 

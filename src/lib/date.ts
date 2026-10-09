@@ -4,12 +4,12 @@ export function todayIso(): string {
   return new Date(now.getTime() - offset * 60_000).toISOString().slice(0, 10);
 }
 
-export function formatDate(value: string): string {
-  return new Intl.DateTimeFormat('zh-CN', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date(`${value}T12:00:00`));
+export function formatDate(value: string, locale = 'zh-CN'): string {
+  return new Intl.DateTimeFormat(locale, { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date(`${value}T12:00:00`));
 }
 
-export function formatDateShort(value: string): string {
-  return new Intl.DateTimeFormat('zh-CN', { month: 'short', day: 'numeric' }).format(new Date(`${value}T12:00:00`));
+export function formatDateShort(value: string, locale = 'zh-CN'): string {
+  return new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }).format(new Date(`${value}T12:00:00`));
 }
 
 export function timeToMinutes(value: string): number {

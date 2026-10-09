@@ -10,7 +10,7 @@ Current version: **v0.1.0 MVP**
 
 ## Download and run
 
-Download `LifeOS-v0.1.0-windows-x64.zip` from [GitHub Releases](https://github.com/Strelitzia7/LifeOS/releases), extract it, and double-click `LifeOS.exe`.
+Download `LifeOS-v0.1.0-windows-x64-en.zip` from [GitHub Releases](https://github.com/Strelitzia7/LifeOS/releases), extract it, and double-click `LifeOS.exe`. The standard portable archive is also available in the same release.
 
 This is a portable build. It does not require an installer, account, cloud service, or network connection. Windows 10/11 requires WebView2 Runtime; it is normally included with Windows 11.
 
@@ -24,6 +24,7 @@ This is a portable build. It does not require an installer, account, cloud servi
 - History for previous plans and reviews.
 - Desktop quick panel with always-on-top, drag, resize, opacity, font-size controls, and quick check-in.
 - Dark mode and Windows-friendly desktop interactions.
+- English is the default for a fresh install; use the `中文` button in the top bar to switch the whole app to Chinese. The setting is saved locally.
 
 Importing another plan for the same date creates a new version and never silently overwrites execution history.
 
