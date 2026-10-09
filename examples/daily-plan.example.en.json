@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "type": "daily_plan",
+  "plan_id": "demo-2026-10-09-en",
+  "date": "2026-10-09",
+  "title": "Focused Workday",
+  "tasks": [
+    {
+      "id": "focus-01-en",
+      "title": "Deep work: LifeOS MVP",
+      "description": "Finish one small deliverable.",
+      "start_time": "13:00",
+      "end_time": "14:30",
+      "category": "Creation"
+    },
+    {
+      "id": "walk-01-en",
+      "title": "Walk and reset",
+      "start_time": "14:45",
+      "end_time": "15:15",
+      "category": "Recovery"
+    },
+    {
+      "id": "review-01-en",
+      "title": "Review the day’s output",
+      "start_time": "15:30",
+      "end_time": "16:30",
+      "category": "Wrap-up"
+    }
+  ]
+}

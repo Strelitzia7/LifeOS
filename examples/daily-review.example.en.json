@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "type": "daily_review",
+  "date": "2026-10-09",
+  "completion_status": "partial",
+  "efficiency": 4,
+  "cognitive_gains": "Breaking work into time blocks made it easier to start.",
+  "exploration": "Tried an offline-first local data workflow.",
+  "autonomy": 5,
+  "reflection": "Deep work was effective. Reduce context switching tomorrow."
+}
