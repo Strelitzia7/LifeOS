@@ -9,6 +9,7 @@ import { formatDate, formatDateShort, generateId, timeToMinutes, todayIso } from
 import { backupToJson, createTask, deleteTask, loadData, reviewToJson, savePlan, saveReview, updateTask } from './lib/storage';
 import { parseDailyPlan } from './validation/schemas';
 import { localizeError, useI18n } from './i18n';
+import './timeline.css';
 
 type View = 'today' | 'import' | 'history';
 const QUICK_PANEL_MODE = new URLSearchParams(window.location.search).get('panel') === 'quick';
@@ -156,7 +157,12 @@ function TodayView({ date, setDate, plan, tasks, review, data, run, onImport }: 
 function Timeline({ plan, tasks, run }: { plan: PlanRecord; tasks: TaskRecord[]; run: (operation: () => Promise<void>, successMessage?: string) => Promise<void> }) {
   const { t } = useI18n();
   const [showAdd, setShowAdd] = useState(false);
-  return <div className="timeline-wrap card"><div className="timeline-grid"><div className="time-ruler">{['13:00', '14:00', '15:00', '16:00', '17:00'].map((time) => <span key={time}>{time}</span>)}</div><div className="timeline-body"><div className="ruler-line" />{tasks.length === 0 && <div className="timeline-empty">{t('noTasks')}</div>}{tasks.map((task) => <TaskRow key={task.id} task={task} run={run} />)}</div></div><button className="add-task-button" onClick={() => setShowAdd((value) => !value)}>{showAdd ? <X size={17} /> : <Plus size={17} />} {showAdd ? t('cancel') : t('addTask')}</button>{showAdd && <AddTaskForm plan={plan} tasks={tasks} run={run} onDone={() => setShowAdd(false)} />}</div>;
+  const orderedTasks = [...tasks].sort((a, b) => a.startTime.localeCompare(b.startTime));
+  return <section className="agenda card">
+    <header className="agenda-header"><span><Clock3 size={16} />13:00 <span className="agenda-range">—</span> 17:00</span><button className="secondary-button compact" onClick={() => setShowAdd((value) => !value)}>{showAdd ? <X size={15} /> : <Plus size={15} />}{showAdd ? t('cancel') : t('addTask')}</button></header>
+    {showAdd && <AddTaskForm plan={plan} tasks={tasks} run={run} onDone={() => setShowAdd(false)} />}
+    <div className="agenda-list">{orderedTasks.length === 0 ? <div className="agenda-empty">{t('noTasks')}</div> : orderedTasks.map((task) => <TaskRow key={task.id} task={task} run={run} />)}</div>
+  </section>;
 }
 
 function TaskRow({ task, run }: { task: TaskRecord; run: (operation: () => Promise<void>, successMessage?: string) => Promise<void> }) {
@@ -166,7 +172,16 @@ function TaskRow({ task, run }: { task: TaskRecord; run: (operation: () => Promi
   const [end, setEnd] = useState(task.endTime);
   const statusClass = task.status === 'completed' ? 'completed' : task.status === 'in_progress' ? 'in-progress' : '';
   const saveTime = () => void run(async () => { await updateTask({ ...task, startTime: start, endTime: end }); setEditing(false); }, t('taskTimeUpdated'));
-  return <div className={`task-row ${statusClass}`}><div className="task-line"><button className={`check-button ${task.status === 'completed' ? 'checked' : ''}`} title={t('changeStatus')} onClick={() => void run(() => updateTask({ ...task, status: task.status === 'completed' ? 'planned' : 'completed' }), task.status === 'completed' ? t('taskRestored') : t('taskCompleted'))}>{task.status === 'completed' && <Check size={14} />}</button><div className="task-content"><div className="task-title-line"><strong>{task.title}</strong>{task.category && <span className="category-chip">{task.category}</span>}</div>{task.description && <p>{task.description}</p>}<div className="task-meta"><Clock3 size={13} />{task.startTime} — {task.endTime}<span className="task-id">#{task.id}</span></div></div><select className="status-select" value={task.status} onChange={(event) => void run(() => updateTask({ ...task, status: event.target.value as TaskStatus }), t('taskStatusUpdated'))}>{Object.entries(STATUS_LABELS).map(([value]) => <option key={value} value={value}>{t(TASK_STATUS_KEYS[value as TaskStatus])}</option>)}</select><button className="ghost-icon" title={t('editTime')} onClick={() => setEditing((value) => !value)}><Settings2 size={16} /></button><button className="ghost-icon danger-icon" title={t('deleteTask')} onClick={() => { if (window.confirm(t('deleteConfirm', { title: task.title }))) void run(() => deleteTask(task.id), t('taskDeleted')); }}><Trash2 size={16} /></button></div>{editing && <div className="inline-editor"><label>{t('start')}<input type="time" value={start} onChange={(event) => setStart(event.target.value)} /></label><label>{t('end')}<input type="time" value={end} onChange={(event) => setEnd(event.target.value)} /></label><button className="primary-button compact" onClick={saveTime}><Save size={15} />{t('save')}</button></div>}</div>;
+  return <article className={`agenda-row ${statusClass}`}>
+    <div className="agenda-time"><time>{task.startTime}</time><time>{task.endTime}</time></div>
+    <div className="agenda-node" aria-hidden="true" />
+    <div className="agenda-task">
+      <div className="agenda-task-heading"><button className={`check-button ${task.status === 'completed' ? 'checked' : ''}`} aria-label={t('changeStatus')} title={t('changeStatus')} onClick={() => void run(() => updateTask({ ...task, status: task.status === 'completed' ? 'planned' : 'completed' }), task.status === 'completed' ? t('taskRestored') : t('taskCompleted'))}>{task.status === 'completed' && <Check size={14} />}</button><h3>{task.title}</h3></div>
+      {task.description && <p className="agenda-description">{task.description}</p>}
+      <div className="agenda-task-footer"><div className="agenda-details">{task.category && <span className="category-chip">{task.category}</span>}<span className="agenda-duration"><Clock3 size={12} />{timeToMinutes(task.endTime) - timeToMinutes(task.startTime)} min</span></div><div className="agenda-actions"><select className="status-select" aria-label={t('changeStatus')} value={task.status} onChange={(event) => void run(() => updateTask({ ...task, status: event.target.value as TaskStatus }), t('taskStatusUpdated'))}>{Object.entries(STATUS_LABELS).map(([value]) => <option key={value} value={value}>{t(TASK_STATUS_KEYS[value as TaskStatus])}</option>)}</select><button className="ghost-icon" aria-label={t('editTime')} title={t('editTime')} aria-expanded={editing} onClick={() => { setStart(task.startTime); setEnd(task.endTime); setEditing((value) => !value); }}><Settings2 size={16} /></button><button className="ghost-icon danger-icon" aria-label={t('deleteTask')} title={t('deleteTask')} onClick={() => { if (window.confirm(t('deleteConfirm', { title: task.title }))) void run(() => deleteTask(task.id), t('taskDeleted')); }}><Trash2 size={16} /></button></div></div>
+      {editing && <div className="inline-editor"><label>{t('start')}<input type="time" value={start} onChange={(event) => setStart(event.target.value)} /></label><label>{t('end')}<input type="time" value={end} onChange={(event) => setEnd(event.target.value)} /></label><button className="primary-button compact" onClick={saveTime}><Save size={15} />{t('save')}</button><button className="ghost-button compact" onClick={() => setEditing(false)}>{t('cancel')}</button></div>}
+    </div>
+  </article>;
 }
 
 function AddTaskForm({ plan, tasks, run, onDone }: { plan: PlanRecord; tasks: TaskRecord[]; run: (operation: () => Promise<void>, successMessage?: string) => Promise<void>; onDone: () => void }) {
