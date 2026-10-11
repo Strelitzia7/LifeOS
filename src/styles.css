@@ -45,3 +45,8 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .quick-font-small { --quick-font-scale: .9; }.quick-font-normal { --quick-font-scale: 1; }.quick-font-large { --quick-font-scale: 1.12; }.quick-font-small .quick-date strong, .quick-font-normal .quick-date strong, .quick-font-large .quick-date strong { font-size: calc(25px * var(--quick-font-scale)); }.quick-font-small .quick-task-copy strong, .quick-font-normal .quick-task-copy strong, .quick-font-large .quick-task-copy strong { font-size: calc(12px * var(--quick-font-scale)); }.quick-font-small .quick-task-copy small, .quick-font-normal .quick-task-copy small, .quick-font-large .quick-task-copy small { font-size: calc(10px * var(--quick-font-scale)); }.quick-font-small .quick-count, .quick-font-normal .quick-count, .quick-font-large .quick-count { font-size: calc(10px * var(--quick-font-scale)); }
 .language-button { min-width: 34px; height: 34px; padding: 0 9px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 9px; font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
 .language-button:hover { color: var(--text); border-color: var(--accent); background: var(--surface); }
+
+/* Keep timeline cards aligned to real duration instead of the compact card minimum. */
+.timeline-grid { min-height: var(--timeline-height, 350px); }
+.timeline-body { min-height: var(--timeline-height, 350px); }
+.task-line { min-height: 0; height: 100%; }
