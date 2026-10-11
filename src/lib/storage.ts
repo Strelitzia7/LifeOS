@@ -7,6 +7,43 @@ import { dailyReviewSchema } from '../validation/schemas';
 const STORAGE_KEY = 'lifeos.local-data.v1';
 let dbPromise: Promise<Database> | null = null;
 
+const SQLITE_BUSY_RE = /database is locked|database table is locked|database schema is locked|sqlite_busy|busy timeout/i;
+const SQLITE_RETRY_DELAYS = [80, 160, 320, 640, 1000, 1600, 2400, 3200];
+
+function errorText(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function isSqliteBusy(error: unknown): boolean {
+  return SQLITE_BUSY_RE.test(errorText(error));
+}
+
+function wait(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
+async function withSqliteRetry<T>(operation: () => Promise<T>): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= SQLITE_RETRY_DELAYS.length; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      if (!isSqliteBusy(error) || attempt === SQLITE_RETRY_DELAYS.length) throw error;
+      await wait(SQLITE_RETRY_DELAYS[attempt]);
+    }
+  }
+  throw lastError;
+}
+
+async function executeSql(db: Database, query: string, bindValues?: unknown[]): Promise<void> {
+  await withSqliteRetry(() => db.execute(query, bindValues));
+}
+
+async function selectSql<T>(db: Database, query: string, bindValues?: unknown[]): Promise<T> {
+  return withSqliteRetry(() => db.select<T>(query, bindValues));
+}
+
 function inTauri(): boolean {
   return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 }
@@ -37,8 +74,14 @@ function writeLocal(data: LifeOSData): void {
 async function getDb(): Promise<Database> {
   if (!dbPromise) {
     dbPromise = Database.load('sqlite:lifeos.db').then(async (db) => {
-      await db.execute('PRAGMA foreign_keys = ON');
-      await db.execute(`CREATE TABLE IF NOT EXISTS plans (
+      // The main window and quick panel are separate webviews, so each can hold
+      // its own SQLite connection. WAL plus a busy timeout keeps short refresh/
+      // write overlaps from surfacing as "database is locked" errors.
+      await executeSql(db, 'PRAGMA busy_timeout = 10000');
+      await executeSql(db, 'PRAGMA journal_mode = WAL');
+      await executeSql(db, 'PRAGMA synchronous = NORMAL');
+      await executeSql(db, 'PRAGMA foreign_keys = ON');
+      await executeSql(db, `CREATE TABLE IF NOT EXISTS plans (
         id TEXT PRIMARY KEY,
         source_plan_id TEXT NOT NULL,
         plan_date TEXT NOT NULL,
@@ -47,7 +90,7 @@ async function getDb(): Promise<Database> {
         created_at TEXT NOT NULL,
         source_json TEXT NOT NULL
       )`);
-      await db.execute(`CREATE TABLE IF NOT EXISTS tasks (
+      await executeSql(db, `CREATE TABLE IF NOT EXISTS tasks (
         id TEXT PRIMARY KEY,
         plan_id TEXT NOT NULL,
         plan_date TEXT NOT NULL,
@@ -62,7 +105,7 @@ async function getDb(): Promise<Database> {
         updated_at TEXT NOT NULL,
         FOREIGN KEY(plan_id) REFERENCES plans(id) ON DELETE CASCADE
       )`);
-      await db.execute(`CREATE TABLE IF NOT EXISTS reviews (
+      await executeSql(db, `CREATE TABLE IF NOT EXISTS reviews (
         review_date TEXT PRIMARY KEY,
         schema_version TEXT NOT NULL,
         completion_status TEXT NOT NULL,
@@ -77,7 +120,7 @@ async function getDb(): Promise<Database> {
       return db;
     }).catch((error) => {
       dbPromise = null;
-      throw new Error(`SQLite 初始化失败：${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`SQLite 初始化失败：${errorText(error)}`);
     });
   }
   return dbPromise;
@@ -99,9 +142,9 @@ export async function loadData(): Promise<LifeOSData> {
   if (!inTauri()) return readLocal();
   const db = await getDb();
   const [plans, tasks, reviews] = await Promise.all([
-    db.select<Record<string, unknown>[]>('SELECT * FROM plans ORDER BY plan_date DESC, created_at DESC'),
-    db.select<Record<string, unknown>[]>('SELECT * FROM tasks ORDER BY plan_date DESC, start_time ASC, sort_order ASC'),
-    db.select<Record<string, unknown>[]>('SELECT * FROM reviews ORDER BY review_date DESC'),
+    selectSql<Record<string, unknown>[]>(db, 'SELECT * FROM plans ORDER BY plan_date DESC, created_at DESC'),
+    selectSql<Record<string, unknown>[]>(db, 'SELECT * FROM tasks ORDER BY plan_date DESC, start_time ASC, sort_order ASC'),
+    selectSql<Record<string, unknown>[]>(db, 'SELECT * FROM reviews ORDER BY review_date DESC'),
   ]);
   return { plans: plans.map(mapPlan), tasks: tasks.map(mapTask), reviews: reviews.map(mapReview) };
 }
@@ -123,17 +166,25 @@ export async function savePlan(input: DailyPlanInput): Promise<PlanRecord> {
 
   const db = await getDb();
   try {
-    await db.execute('BEGIN TRANSACTION');
-    await db.execute('INSERT INTO plans (id, source_plan_id, plan_date, title, schema_version, created_at, source_json) VALUES (?, ?, ?, ?, ?, ?, ?)', [plan.id, plan.sourcePlanId, plan.date, plan.title, plan.schemaVersion, plan.createdAt, plan.sourceJson]);
+    // tauri-plugin-sql uses a SQLite connection pool. Keep the complete
+    // transaction in one execute call so BEGIN/INSERT/COMMIT stay on the
+    // same pooled connection.
+    const taskInsert = 'INSERT INTO tasks (id, plan_id, plan_date, title, description, start_time, end_time, category, status, completed_at, sort_order, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const query = [
+      'BEGIN IMMEDIATE',
+      'INSERT INTO plans (id, source_plan_id, plan_date, title, schema_version, created_at, source_json) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      ...tasks.map(() => taskInsert),
+      'COMMIT',
+    ].join(';\n');
+    const values: unknown[] = [plan.id, plan.sourcePlanId, plan.date, plan.title, plan.schemaVersion, plan.createdAt, plan.sourceJson];
     for (const task of tasks) {
-      await db.execute('INSERT INTO tasks (id, plan_id, plan_date, title, description, start_time, end_time, category, status, completed_at, sort_order, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [task.id, task.planId, task.date, task.title, task.description, task.startTime, task.endTime, task.category, task.status, task.completedAt, task.sortOrder, task.updatedAt]);
+      values.push(task.id, task.planId, task.date, task.title, task.description, task.startTime, task.endTime, task.category, task.status, task.completedAt, task.sortOrder, task.updatedAt);
     }
-    await db.execute('COMMIT');
+    await withSqliteRetry(() => db.execute(query, values));
     return plan;
   } catch (error) {
-    await db.execute('ROLLBACK').catch(() => undefined);
-    if (String(error).toLowerCase().includes('unique')) throw new Error('重复任务 ID：数据库中已经存在同名任务。');
-    throw new Error(`保存计划失败：${error instanceof Error ? error.message : String(error)}`);
+    if (errorText(error).toLowerCase().includes('unique')) throw new Error('重复任务 ID：数据库中已经存在同名任务。');
+    throw new Error(`保存计划失败：${errorText(error)}`);
   }
 }
 
@@ -154,9 +205,9 @@ export async function updateTask(task: TaskRecord): Promise<void> {
   }
   const db = await getDb();
   try {
-    await db.execute('UPDATE tasks SET title = ?, description = ?, start_time = ?, end_time = ?, category = ?, status = ?, completed_at = ?, updated_at = ? WHERE id = ?', [updated.title, updated.description, updated.startTime, updated.endTime, updated.category, updated.status, updated.completedAt, updated.updatedAt, updated.id]);
+    await executeSql(db, 'UPDATE tasks SET title = ?, description = ?, start_time = ?, end_time = ?, category = ?, status = ?, completed_at = ?, updated_at = ? WHERE id = ?', [updated.title, updated.description, updated.startTime, updated.endTime, updated.category, updated.status, updated.completedAt, updated.updatedAt, updated.id]);
   } catch (error) {
-    throw new Error(`保存任务失败：${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`保存任务失败：${errorText(error)}`);
   }
 }
 
@@ -175,9 +226,9 @@ export async function createTask(task: Omit<TaskRecord, 'updatedAt' | 'completed
   }
   const db = await getDb();
   try {
-    await db.execute('INSERT INTO tasks (id, plan_id, plan_date, title, description, start_time, end_time, category, status, completed_at, sort_order, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [record.id, record.planId, record.date, record.title, record.description, record.startTime, record.endTime, record.category, record.status, null, record.sortOrder, record.updatedAt]);
+    await executeSql(db, 'INSERT INTO tasks (id, plan_id, plan_date, title, description, start_time, end_time, category, status, completed_at, sort_order, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [record.id, record.planId, record.date, record.title, record.description, record.startTime, record.endTime, record.category, record.status, null, record.sortOrder, record.updatedAt]);
   } catch (error) {
-    throw new Error(`新增任务失败：${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`新增任务失败：${errorText(error)}`);
   }
 }
 
@@ -190,9 +241,9 @@ export async function deleteTask(taskId: string): Promise<void> {
   }
   const db = await getDb();
   try {
-    await db.execute('DELETE FROM tasks WHERE id = ?', [taskId]);
+    await executeSql(db, 'DELETE FROM tasks WHERE id = ?', [taskId]);
   } catch (error) {
-    throw new Error(`删除任务失败：${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`删除任务失败：${errorText(error)}`);
   }
 }
 
@@ -211,11 +262,11 @@ export async function saveReview(review: DailyReviewExport): Promise<void> {
   }
   const db = await getDb();
   try {
-    await db.execute(`INSERT INTO reviews (review_date, schema_version, completion_status, efficiency, cognitive_gains, exploration, autonomy, reflection, created_at, updated_at)
+    await executeSql(db, `INSERT INTO reviews (review_date, schema_version, completion_status, efficiency, cognitive_gains, exploration, autonomy, reflection, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(review_date) DO UPDATE SET schema_version = excluded.schema_version, completion_status = excluded.completion_status, efficiency = excluded.efficiency, cognitive_gains = excluded.cognitive_gains, exploration = excluded.exploration, autonomy = excluded.autonomy, reflection = excluded.reflection, updated_at = excluded.updated_at`, [record.date, record.schemaVersion, record.completionStatus, record.efficiency, record.cognitiveGains, record.exploration, record.autonomy, record.reflection, record.createdAt, record.updatedAt]);
   } catch (error) {
-    throw new Error(`保存复盘失败：${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`保存复盘失败：${errorText(error)}`);
   }
 }
 
