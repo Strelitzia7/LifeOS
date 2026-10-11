@@ -75,8 +75,7 @@ function App() {
   const [notice, setNotice] = useState('');
 
   const refresh = async () => {
-    setBusy(true);
-    try { setData(await loadData()); setError(''); } catch (err) { setError(localizeError(err instanceof Error ? err.message : String(err), language)); } finally { setBusy(false); }
+    try { setData(await loadData()); setError(''); return true; } catch (err) { setError(localizeError(err instanceof Error ? err.message : String(err), language)); return false; } finally { setBusy(false); }
   };
 
   useEffect(() => { void refresh(); }, []);
@@ -90,7 +89,8 @@ function App() {
 
   const run = async (operation: () => Promise<void>, successMessage?: string) => {
     setError('');
-    try { await operation(); await refresh(); if (successMessage) setNotice(successMessage); } catch (err) { setError(localizeError(err instanceof Error ? err.message : String(err), language)); }
+    setNotice('');
+    try { await operation(); const refreshed = await refresh(); if (refreshed && successMessage) setNotice(successMessage); } catch (err) { setError(localizeError(err instanceof Error ? err.message : String(err), language)); }
   };
 
   return (
@@ -106,8 +106,10 @@ function App() {
             <button className="language-button" title={language === 'en' ? 'Switch to Chinese' : '切换到英文'} onClick={toggleLanguage}>{t('language')}</button>
           </div>
         </header>
-        {error && <div className="alert error"><X size={18} /><span>{error}</span><button onClick={() => setError('')}><X size={16} /></button></div>}
-        {notice && <div className="alert success"><Check size={18} /><span>{notice}</span></div>}
+        <div className="notification-stack">
+          {error && <div className="alert error" role="alert"><X size={18} /><span>{error}</span><button aria-label={t('closePanel')} onClick={() => setError('')}><X size={16} /></button></div>}
+          {notice && <div className="alert success" role="status"><Check size={18} /><span>{notice}</span><button aria-label={t('closePanel')} onClick={() => setNotice('')}><X size={16} /></button></div>}
+        </div>
         {busy ? <Loading /> : view === 'today' ? <TodayView date={selectedDate} setDate={setSelectedDate} plan={activePlan} tasks={activeTasks} review={activeReview} data={data} run={run} onImport={() => setView('import')} /> : view === 'import' ? <ImportView existingPlans={data.plans} onImported={(date) => { setSelectedDate(date); setView('today'); }} run={run} /> : <HistoryView data={data} onSelectDate={(date) => { setSelectedDate(date); setView('today'); }} />}
       </main>
     </div>

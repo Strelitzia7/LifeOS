@@ -53,6 +53,13 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .language-button { min-width: 34px; height: 34px; padding: 0 9px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 9px; font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
 .language-button:hover { color: var(--text); border-color: var(--accent); background: var(--surface); }
 
+.notification-stack { position: fixed; right: 24px; bottom: 24px; z-index: 20; display: grid; gap: 10px; width: min(420px, calc(100vw - 48px)); pointer-events: none; }
+.notification-stack .alert { position: static; margin: 0; padding: 13px 15px; pointer-events: auto; box-shadow: var(--shadow); }
+.notification-stack .alert > svg { flex-shrink: 0; }
+.notification-stack .alert span { min-width: 0; max-height: 180px; overflow-y: auto; overflow-wrap: anywhere; font-size: 12px; line-height: 1.6; }
+.notification-stack .alert button { display: grid; place-items: center; flex-shrink: 0; width: 28px; height: 28px; border-radius: 6px; }
+.notification-stack .alert button:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+
 /* Keep timeline cards aligned to real duration instead of the compact card minimum. */
 .timeline-grid { min-height: var(--timeline-height, 350px); }
 .timeline-body { min-height: var(--timeline-height, 350px); }
