@@ -2,17 +2,17 @@
 
 LifeOS is an offline-first Windows desktop app for turning AI-generated daily plans into local, executable work. Import a standard plan, complete tasks, write a daily review, and export feedback JSON for the next plan.
 
-Current version: **v0.1.0 MVP**
+Current version: **v0.1.1 MVP**
 
-Recent fixes in `main`: SQLite import locking, a redesigned daily agenda, quick-panel scrolling, and notifications that preserve your reading position. See the [changelog](CHANGELOG.md). Existing v0.1.0 release archives do not include these fixes yet.
+v0.1.1 fixes SQLite import locking, improves the daily agenda, enables quick-panel scrolling, and preserves your reading position during notifications and refreshes. See the [changelog](CHANGELOG.md).
 
 **Language:** English (default) · [中文 README](README.zh-CN.md)
 
-[Download Windows portable build](https://github.com/Strelitzia7/LifeOS/releases/tag/v0.1.0) · [JSON Schemas](schemas/) · [Report an issue](https://github.com/Strelitzia7/LifeOS/issues)
+[Download Windows portable build](https://github.com/Strelitzia7/LifeOS/releases/tag/v0.1.1) · [JSON Schemas](schemas/) · [Report an issue](https://github.com/Strelitzia7/LifeOS/issues)
 
 ## Download and run
 
-Download `LifeOS-v0.1.0-windows-x64-en.zip` from [GitHub Releases](https://github.com/Strelitzia7/LifeOS/releases), extract it, and double-click `LifeOS.exe`. The standard portable archive is also available in the same release.
+Download `LifeOS-v0.1.1-windows-x64-en.zip` from [GitHub Releases](https://github.com/Strelitzia7/LifeOS/releases), extract it, and double-click `LifeOS.exe`. The standard portable archive contains the same bilingual app.
 
 This is a portable build. It does not require an installer, account, cloud service, or network connection. Windows 10/11 requires WebView2 Runtime; it is normally included with Windows 11.
 

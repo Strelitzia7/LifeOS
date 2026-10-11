@@ -2,7 +2,7 @@
 
 English · [中文](CHANGELOG.zh-CN.md)
 
-## Unreleased — fixes after v0.1.0
+## v0.1.1 — 2026-10-11
 
 - Plan imports: enable SQLite WAL and a busy timeout, retry lock contention, and execute each plan import transaction through one pooled connection.
 - Daily timeline: replace overlapping, stretched task blocks with a compact agenda, a time rail, and cards ordered by start time. Long titles and descriptions wrap; task actions and inline time editing have dedicated space.
@@ -16,4 +16,4 @@ English · [中文](CHANGELOG.zh-CN.md)
 - `npm run build`: passed.
 - `npm run tauri build`: passed; Windows executable generated locally.
 
-These changes are in `main`. The existing v0.1.0 release archives predate these fixes; build from source to use them until a new release is published.
+The v0.1.1 Windows portable archives include these fixes. Close the old app, extract the new archive, and run `LifeOS.exe`. Personal data remains in the existing local app data directory.

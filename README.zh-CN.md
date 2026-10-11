@@ -2,21 +2,21 @@
 
 LifeOS 是一个离线优先的 Windows 桌面应用：从外部 AI 导入标准化日程，在本地执行任务、记录完成情况和每日复盘，再导出 JSON 反馈给下一次计划生成。
 
-当前版本：**v0.1.0 MVP**
+当前版本：**v0.1.1 MVP**
 
-`main` 最新修正：SQLite 导入锁定、今日时间轴布局、便栏上下滚动，以及提示消息导致跳回顶部的问题。详见[更新记录](CHANGELOG.zh-CN.md)。现有 v0.1.0 Release 压缩包尚未包含这些修正。
+v0.1.1 已修正 SQLite 导入锁定、今日时间轴布局、便栏上下滚动，以及提示消息和刷新导致跳回顶部的问题。详见[更新记录](CHANGELOG.zh-CN.md)。
 
 **语言：** [English README](README.md) · 中文
 
-[下载 Windows 便携版](https://github.com/Strelitzia7/LifeOS/releases/tag/v0.1.0) · [查看 JSON Schema](schemas/) · [提交 Issue](https://github.com/Strelitzia7/LifeOS/issues)
+[下载 Windows 便携版](https://github.com/Strelitzia7/LifeOS/releases/tag/v0.1.1) · [查看 JSON Schema](schemas/) · [提交 Issue](https://github.com/Strelitzia7/LifeOS/issues)
 
 ## 下载和运行
 
-从 [Releases](https://github.com/Strelitzia7/LifeOS/releases) 下载 `LifeOS-v0.1.0-windows-x64-en.zip` 或同一 release 中的标准便携包，解压后双击 `LifeOS.exe` 即可运行。
+从 [Releases](https://github.com/Strelitzia7/LifeOS/releases) 下载 `LifeOS-v0.1.1-windows-x64-en.zip` 或同一 Release 中的标准便携包，解压后双击 `LifeOS.exe` 即可运行。两个压缩包包含相同的双语应用。
 
 这是一个便携版，不需要安装器，不需要登录，也不需要网络服务。Windows 10/11 需要 WebView2 Runtime；Windows 11 通常已经自带。
 
-## v0.1.0 功能
+## v0.1.1 功能
 
 - 今日页面：日期选择、13:00–17:00 时间轴、当前任务和完成进度。
 - 计划导入：粘贴 JSON 或选择本地文件，严格验证 LifeOS JSON v1，并在保存前预览变化。

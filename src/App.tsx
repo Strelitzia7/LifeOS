@@ -125,7 +125,7 @@ function Sidebar({ view, setView, onToday }: { view: View; setView: (view: View)
       <button className={view === 'import' ? 'nav-item active' : 'nav-item'} onClick={() => setView('import')}><Upload size={18} /><span>{t('importPlan')}</span><span className="nav-key">⌘2</span></button>
       <button className={view === 'history' ? 'nav-item active' : 'nav-item'} onClick={() => setView('history')}><History size={18} /><span>{t('history')}</span></button>
     </nav>
-    <div className="sidebar-bottom"><div className="local-badge"><span className="status-dot" />{t('localOnly')}</div><div className="version">LifeOS v0.1 MVP</div></div>
+    <div className="sidebar-bottom"><div className="local-badge"><span className="status-dot" />{t('localOnly')}</div><div className="version">LifeOS v0.1.1 MVP</div></div>
   </aside>;
 }
 
