@@ -4,6 +4,8 @@ LifeOS 是一个离线优先的 Windows 桌面应用：从外部 AI 导入标准
 
 当前版本：**v0.1.0 MVP**
 
+`main` 最新修正：SQLite 导入锁定、今日时间轴布局、便栏上下滚动，以及提示消息导致跳回顶部的问题。详见[更新记录](CHANGELOG.zh-CN.md)。现有 v0.1.0 Release 压缩包尚未包含这些修正。
+
 **语言：** [English README](README.md) · 中文
 
 [下载 Windows 便携版](https://github.com/Strelitzia7/LifeOS/releases/tag/v0.1.0) · [查看 JSON Schema](schemas/) · [提交 Issue](https://github.com/Strelitzia7/LifeOS/issues)

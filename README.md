@@ -4,6 +4,8 @@ LifeOS is an offline-first Windows desktop app for turning AI-generated daily pl
 
 Current version: **v0.1.0 MVP**
 
+Recent fixes in `main`: SQLite import locking, a redesigned daily agenda, quick-panel scrolling, and notifications that preserve your reading position. See the [changelog](CHANGELOG.md). Existing v0.1.0 release archives do not include these fixes yet.
+
 **Language:** English (default) · [中文 README](README.zh-CN.md)
 
 [Download Windows portable build](https://github.com/Strelitzia7/LifeOS/releases/tag/v0.1.0) · [JSON Schemas](schemas/) · [Report an issue](https://github.com/Strelitzia7/LifeOS/issues)
